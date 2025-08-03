@@ -6,10 +6,43 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+  output   = "./generated/client"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Accounts {
+  id           Int               @id @default(autoincrement())
+  username     String            @unique
+  name         String
+  email        String            @unique
+  password     String
+  phone_number String
+  img          String?
+  isVerified   Boolean           @default(false)
+  role         Role
+  referral     String?           @unique
+  referredBy   ReferralAccount[] @relation("ReferrerAccountRelation")
+  referralFor  ReferralAccount[] @relation("ReferredAccountRelation")
+  created_at   DateTime          @default(now())
+}
+
+model ReferralAccount {
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now())
+
+  referrer   Accounts @relation("ReferrerAccountRelation", fields: [referrerid], references: [id])
+  referrerid Int      @unique
+
+  referred   Accounts @relation("ReferredAccountRelation", fields: [referredid], references: [id])
+  referredid Int      @unique
+}
+
+enum Role {
+  USER
+  ORGANIZER
 }
